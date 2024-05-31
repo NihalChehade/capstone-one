@@ -8,17 +8,17 @@
 
         <div class="form-group">
             {{ form.title.label(class_="form-label") }}
-            {{ form.title(class_="form-control") }}
+            {{ form.title(class_="form-control", autocomplete="") }}
         </div>
 
         <div class="form-group">
             {{ form.description.label(class_="form-label") }}
-            {{ form.description(class_="form-control") }}
+            {{ form.description(class_="form-control", autocomplete="") }}
         </div>
 
         <div class="form-group">
             {{ form.instructions.label(class_="form-label") }}
-            {{ form.instructions(class_="form-control") }}
+            {{ form.instructions(class_="form-control", autocomplete="") }}
         </div>
 
         <h2 class="mt-4">Ingredients</h2>
@@ -30,17 +30,17 @@
 
                 <div class="col-md-3">
                     {{ subform.form.name.label(class_="form-label") }} 
-                    {{ subform.form.name(class_="form-control", list="ingredient-dropdown-" ~ loop.index0, oninput="searchIngredient(this, " ~ loop.index0 ~ ")", onchange="selectIngredient(this, " ~ loop.index0 ~ ")") }}
+                    {{ subform.form.name(class_="form-control", autocomplete="", list="ingredient-dropdown-" ~ loop.index0, oninput="searchIngredient(this, " ~ loop.index0 ~ ")", onchange="selectIngredient(this, " ~ loop.index0 ~ ")") }}
                     <datalist id="ingredient-dropdown-{{ loop.index0 }}"></datalist>
                 </div>
                 <div class="col-md-2">
                     {{ subform.form.quantity.label(class_="form-label") }}
-                    {{ subform.form.quantity(class_="form-control") }}
+                    {{ subform.form.quantity(class_="form-control", autocomplete="") }}
                     
                 </div>
                 <div class="col-md-2">
                     {{ subform.form.unit.label(class_="form-label", for="ingredients-"~ loop.index0 ~"-unit") }}
-                    {{ subform.form.unit(class_="form-control", id="ingredients-"~ loop.index0 ~"-unit") }}
+                    {{ subform.form.unit(class_="form-control", id="ingredients-"~ loop.index0 ~"-unit", autocomplete="") }}
                    
                 </div>
                 <div>{{ subform.form.spoonacular_id(id="ingredients-"~ loop.index0 ~"-spoonacular_id", type="hidden") }}</div>
