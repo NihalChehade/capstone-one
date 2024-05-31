@@ -11,7 +11,7 @@ from PIL import Image
 from secrett import SPOONACULAR_API_KEY
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///cook_time"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL', 'postgresql://njaicrqz:gyXNe8QlCSAVE4qiBMCTR0tin6LTCYKC@bubble.db.elephantsql.com/njaicrqz')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "abc123"
