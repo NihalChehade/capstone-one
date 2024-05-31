@@ -60,7 +60,7 @@
 {% block script %}
 <script>
 const SPOONACULAR_API_KEY = "{{ SPOONACULAR_API_KEY }}";
-const CSRF_TOKEN = "{{ form.csrf_token._value() }}"; 
+let CSRF_TOKEN = "{{ csrf_token }}";
 
 async function searchIngredient(input, index) {
     const query = input.value;
@@ -130,7 +130,14 @@ function selectIngredient(input, index) {
 
 let ingredientIndex = '{{ form.ingredients | length }}';
 
-function addIngredientForm() {
+async function refreshCsrfToken() {
+    const response = await fetch('/get_csrf_token');
+    const data = await response.json();
+    CSRF_TOKEN = data.csrf_token;
+}
+
+async function addIngredientForm() {
+    await refreshCsrfToken();
     const ingredientsDiv = document.getElementById('ingredients');
     const csrfToken = document.querySelector('input[name="csrf_token"]').value;
 

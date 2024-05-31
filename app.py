@@ -1,5 +1,5 @@
 from flask_migrate import Migrate
-from flask import Flask, render_template, redirect, session, flash, request, current_app
+from flask import Flask, render_template, redirect, session, flash, request, current_app, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
 from models import connect_db, db, User, Recipe, Ingredient, NutritionalValue, RecipeIngredient
 from forms import SignUpForm, LoginForm, RecipeForm, IngredientForm
@@ -7,6 +7,7 @@ import requests
 import os
 import secrets
 from PIL import Image
+from flask_wtf.csrf import generate_csrf
 
 from secrett import SPOONACULAR_API_KEY
 app = Flask(__name__)
@@ -15,7 +16,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL', 'postgres
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "abc123"
-
+app.config['WTF_CSRF_TIME_LIMIT'] = None  # Disable CSRF expiration for testing, set an appropriate value for production
 connect_db(app)
 
 with app.app_context():
@@ -210,11 +211,14 @@ def create_recipe():
             return redirect(f"/recipes/{new_recipe.recipe_id}")
         else:
             print(form.errors)
-    
-    return render_template('create_recipe.html', form=form, SPOONACULAR_API_KEY=SPOONACULAR_API_KEY)
+    csrf_token = form.csrf_token._value()
+    return render_template('create_recipe.html', form=form, SPOONACULAR_API_KEY=SPOONACULAR_API_KEY, csrf_token=csrf_token)
 
 
-           
+@app.route('/get_csrf_token', methods=['GET'])
+def get_csrf_token():
+    csrf_token = generate_csrf()
+    return jsonify(csrf_token=csrf_token)           
 
 @app.route("/recipes/<recipe_id>")
 def show_recipe(recipe_id):
