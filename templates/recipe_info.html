@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Show Recipe{% endblock %}
+
+
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">{{ recipe.title }}</h1>
+    <p class="lead text-center">{{ recipe.description }}</p>
+
+    <h2 class="mt-4">Ingredients</h2>
+    <ul class="list-group">
+        {% for ingredient_assoc in recipe.recipes_ingredients_assoc %}
+        <li class="list-group-item">{{ ingredient_assoc.quantity }} {{ ingredient_assoc.unit }} of {{ ingredient_assoc.ingredient.name }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2 class="mt-4">Instructions</h2>
+    <ol class="list-group list-group-flush">
+        {% for step in recipe.instructions.split('\n') %}
+        <li class="list-group-item">{{ step }}</li>
+        {% endfor %}
+    </ol>
+
+    <h2 class="mt-4">Recipe Nutritional Values</h2>
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Nutrient</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nutrient, amount in overall_nutritional_values.items() %}
+                {% if nutrient != 'units' %}
+                <tr>
+                    <td>{{ nutrient }}</td>
+                    <td>{{ amount }}</td>
+                    <td>{{ overall_nutritional_values.units[nutrient] }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %} create Recipe {% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="mt-5">Create a New Recipe</h1>
+    <form method="POST" action="/recipes/create_recipe">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.title.label(class_="form-label") }}
+            {{ form.title(class_="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.description.label(class_="form-label") }}
+            {{ form.description(class_="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.instructions.label(class_="form-label") }}
+            {{ form.instructions(class_="form-control") }}
+        </div>
+
+        <h2 class="mt-4">Ingredients</h2>
+        <div id="ingredients">
+            {% for subform in form.ingredients %}
+            
+            <div class="form-row align-items-center mb-3" id="ingredient-form-{{ loop.index0 }}">
+                {{ subform.csrf_token}} 
+
+                <div class="col-md-3">
+                    {{ subform.form.name.label(class_="form-label") }} 
+                    {{ subform.form.name(class_="form-control", list="ingredient-dropdown-" ~ loop.index0, oninput="searchIngredient(this, " ~ loop.index0 ~ ")", onchange="selectIngredient(this, " ~ loop.index0 ~ ")") }}
+                    <datalist id="ingredient-dropdown-{{ loop.index0 }}"></datalist>
+                </div>
+                <div class="col-md-2">
+                    {{ subform.form.quantity.label(class_="form-label") }}
+                    {{ subform.form.quantity(class_="form-control") }}
+                    
+                </div>
+                <div class="col-md-2">
+                    {{ subform.form.unit.label(class_="form-label", for="ingredients-"~ loop.index0 ~"-unit") }}
+                    {{ subform.form.unit(class_="form-control", id="ingredients-"~ loop.index0 ~"-unit") }}
+                   
+                </div>
+                <div>{{ subform.form.spoonacular_id(id="ingredients-"~ loop.index0 ~"-spoonacular_id", type="hidden") }}</div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger" onclick="removeIngredientForm('{{ loop.index0 }}')">Remove</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" class="btn btn-secondary mt-4" onclick="addIngredientForm()">Add Ingredient</button>
+        <button type="submit" class="btn btn-primary mt-4">Create Recipe</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+const SPOONACULAR_API_KEY = "{{ SPOONACULAR_API_KEY }}";
+const CSRF_TOKEN = "{{ form.csrf_token._value() }}"; 
+
+async function searchIngredient(input, index) {
+    const query = input.value;
+    if (query.length < 3) return;
+
+    try {
+        const response = await axios.get(`https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=${SPOONACULAR_API_KEY}&query=${query}&metaInformation=true`);
+        const results = await response.data;
+
+        let dropdown = document.getElementById(`ingredient-dropdown-${index}`);
+        if (dropdown) {
+            dropdown.innerHTML = '';
+            results.forEach(result => {
+                console.log("result", result);
+                let option = document.createElement('option');
+                option.value = result.name;
+                option.dataset.spoonacularId = result.id;
+                option.dataset.possibleUnits = result.possibleUnits ? result.possibleUnits.join(',') : '';;
+                dropdown.appendChild(option);
+            });
+            console.log(`Dropdown with ID ingredient-dropdown-${index} populated`);
+        } else {
+            console.error(`Dropdown with ID ingredient-dropdown-${index} not found`);
+        }
+    } catch (error) {
+        console.error('Error fetching data from Spoonacular API:', error);
+    }
+}
+
+function selectIngredient(input, index) {
+    console.log(`selectIngredient called with index: ${index}, input value: ${input.value}`);
+    let dropdown = document.getElementById(`ingredient-dropdown-${index}`);
+    if (!dropdown) {
+        console.error(`Dropdown with ID ingredient-dropdown-${index} not found`);
+        return;
+    }
+    let selectedOption = Array.from(dropdown.options).find(option => option.value === input.value);
+    if (selectedOption) {
+        const spoonacularIdField = document.getElementById(`ingredients-${index}-spoonacular_id`);
+        if (spoonacularIdField) {
+            spoonacularIdField.value = selectedOption.dataset.spoonacularId;
+            console.log(`Set spoonacular_id for ingredient ${input.value} to ${selectedOption.dataset.spoonacularId}`);
+
+             // Populate the unit dropdown for the selected ingredient
+            const possibleUnits = selectedOption.dataset.possibleUnits.split(',');
+            console.log(" option possible units :", possibleUnits)
+            const unitDropdown = document.getElementById(`ingredients-${index}-unit`);
+            if (unitDropdown) {
+                unitDropdown.innerHTML = ''; // Clear existing options
+                possibleUnits.forEach(unit => {
+                    let option = document.createElement('option');
+                    option.value = unit;
+                    option.textContent = unit;
+                    unitDropdown.appendChild(option);
+                });
+                console.log(`Unit dropdown with ID ingredients-${index}-unit populated with units: ${possibleUnits}`);
+            } else {
+                console.error(`Unit dropdown with ID ingredients-${index}-unit not found`);
+            }
+        } else {
+            console.error(`Hidden input with ID ingredient-spoonacular-id-${index} not found`);
+        }
+    } else {
+        console.error(`Selected option not found in dropdown with ID ingredient-dropdown-${index}`);
+    }
+}
+
+let ingredientIndex = '{{ form.ingredients | length }}';
+
+function addIngredientForm() {
+    const ingredientsDiv = document.getElementById('ingredients');
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+
+    // Ensure no duplicate forms
+    if (document.getElementById(`ingredient-form-${ingredientIndex}`)) {
+        console.error(`Form with ID ingredient-form-${ingredientIndex} already exists`);
+        return;
+    }   
+    
+    const newIngredientForm = `
+        <div class="form-row align-items-center mb-3" id="ingredient-form-${ingredientIndex}">
+            <div class="col-md-3">
+                <input type="hidden" id="ingredients-${ingredientIndex}-csrf_token" name="ingredients-${ingredientIndex}-csrf_token" value="${CSRF_TOKEN}">  <!-- Include CSRF token with correct naming -->
+                <label class="form-label" for="ingredients-${ingredientIndex}-name">Ingredient Name</label>
+                <input class="form-control" id="ingredients-${ingredientIndex}-name" name="ingredients-${ingredientIndex}-name" list="ingredient-dropdown-${ingredientIndex}" oninput="searchIngredient(this, ${ingredientIndex})" onchange="selectIngredient(this, ${ingredientIndex})">
+                <datalist id="ingredient-dropdown-${ingredientIndex}"></datalist>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="ingredients-${ingredientIndex}-quantity">Quantity</label>
+                <input class="form-control" id="ingredients-${ingredientIndex}-quantity" name="ingredients-${ingredientIndex}-quantity" type="number" step="any">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="ingredients-${ingredientIndex}-unit">Unit</label>
+                <select class="form-control" id="ingredients-${ingredientIndex}-unit" name="ingredients-${ingredientIndex}-unit">
+                    <!-- Units will be populated dynamically -->
+                </select>
+            </div>
+            <input id="ingredients-${ingredientIndex}-spoonacular_id" name="ingredients-${ingredientIndex}-spoonacular_id" type="hidden">
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger" onclick="removeIngredientForm(${ingredientIndex})">Remove</button>
+            </div>
+        </div>
+    `;
+    ingredientsDiv.insertAdjacentHTML('beforeend', newIngredientForm);
+    console.log(`Added new ingredient form with index: ${ingredientIndex}`);
+
+    // Verify new element existence
+    console.log(`Verifying element existence for ingredient-dropdown-${ingredientIndex}`);
+    if (document.getElementById(`ingredient-dropdown-${ingredientIndex}`)) {
+        console.log(`Element with ID ingredient-dropdown-${ingredientIndex} exists`);
+    } else {
+        console.error(`Element with ID ingredient-dropdown-${ingredientIndex} not found`);
+    }
+
+    // Attach event listeners to the new elements
+    const ingredientNameInput = document.getElementById(`ingredients-${ingredientIndex}-name`);
+    ingredientNameInput.addEventListener('input', function (e) {
+        e.preventDefault();
+        searchIngredient(this, ingredientIndex);
+    });
+
+    ingredientNameInput.addEventListener('change', function (e) {
+        e.preventDefault();
+        selectIngredient(this, ingredientIndex);
+    });
+
+    ingredientIndex++;
+}
+
+function removeIngredientForm(index) {
+    const ingredientForm = document.getElementById(`ingredient-form-${index}`);
+    if (ingredientForm) {
+        ingredientForm.remove();
+       
+        console.log(`Removed ingredient form with index: ${index}`);
+    } else {
+        console.error(`Ingredient form with ID ingredient-form-${index} not found`);
+    }
+    updateIngredientIndices();
+}
+
+function updateIngredientIndices() {
+    const ingredientForms = document.querySelectorAll('[id^=ingredient-form-]');
+    ingredientForms.forEach((form, newIndex) => {
+        form.id = `ingredient-form-${newIndex}`;
+        form.querySelectorAll('[id^=ingredients-]').forEach(field => {
+            const fieldParts = field.id.split('-');
+            const fieldNameParts = field.name.split('-');
+            field.id = `${fieldParts[0]}-${newIndex}-${fieldParts[2]}`;
+            field.name = `${fieldNameParts[0]}-${newIndex}-${fieldNameParts[2]}`;
+        });
+        const csrfField = form.querySelector('input[name="csrf_token"]');
+        csrfField.name = `ingredients-${newIndex}-csrf_token`;
+        csrfField.id = `ingredients-${newIndex}-csrf_token`
+        const spoonacularIdField = form.querySelector('[id^=ingredient-spoonacular-id-]');
+        spoonacularIdField.id = `ingredient-spoonacular-id-${newIndex}`;
+        spoonacularIdField.name = `ingredients-${newIndex}-spoonacular_id`;
+    });
+    ingredientIndex = ingredientForms.length;
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    event.preventDefault();
+    console.log('DOM fully loaded and parsed');
+    const ingredientInputs = document.querySelectorAll('[id^=spoonacular_id]');
+    ingredientInputs.forEach((input, index) => {
+        input.addEventListener('input', function (e) {
+            e.preventDefault();
+            searchIngredient(input, index);
+        });
+    });
+});
+</script>
+{% endblock %}

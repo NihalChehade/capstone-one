@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %} Main CookTime Page {% endblock %}
+
+{% block content %}
+<header class="hero-section">
+    <div class="container">
+        <h1>Welcome to CookTime</h1>
+        <p class="lead">Create, and explore delicious recipes from other users around the world.</p>
+        {% if 'username' not in session %}
+        <a href="/signup" class="btn btn-primary btn-lg">Get Started</a>
+        {% endif %}
+    </div>
+</header>
+
+<section class="features py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <div class="feature-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h3>Create Recipes</h3>
+                <p>Share your favorite recipes with the world by creating your own recipes.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>Your Recipe Book</h3>
+                <p>View all the recipes you have created in one place.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3>User Profiles</h3>
+                <p>Create an account, login, and manage your profile to personalize your experience.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="py-4 bg-dark text-white text-center">
+    <div class="container">
+        <p>&copy; 2024 CookTime. All Rights Reserved.</p>
+    </div>
+</footer>
+
+ {% endblock %}

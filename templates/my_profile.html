@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %} My Profile {% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                {% if user.profile_image %}
+                <img src="/static/profile_pics/{{user.profile_image}}" class="card-img-top" alt="Profile Picture">
+                {% else %}
+                <img src="/static/profile_pics/default_profile.png" class="card-img-top" alt="Default Profile Picture">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.username }}</h5>
+                    <p class="card-text"> {{user.bio}} </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h3>User Details</h3>
+            <table class="table table-striped">
+                <tbody>
+                    <tr>
+                        <th scope="row">Username</th>
+                        <td>{{ user.username }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Email</th>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3 class="mt-4">Recent Recipes</h3>
+            <ul class="list-group">
+                {% for recipe in user.recipes %}
+                <li class="list-group-item">
+                    <a href="/recipes/{{ recipe.recipe_id }}">{{ recipe.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
