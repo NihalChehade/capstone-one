@@ -77,7 +77,12 @@ def signup():
 
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash('Username already exists', 'danger')
+            flash('Username already exists please choose a new username!', 'danger')
+            return redirect("/signup")
+        
+        existing_user_by_email = User.query.filter_by(email=email).first()
+        if existing_user_by_email:
+            flash('Email already in use please choose a new one!', 'danger')
             return redirect("/signup")
         
         # Handle profile image upload
