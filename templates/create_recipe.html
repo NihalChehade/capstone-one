@@ -9,16 +9,25 @@
         <div class="form-group">
             {{ form.title.label(class_="form-label") }}
             {{ form.title(class_="form-control", autocomplete="") }}
+            {% for error in form.title.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
         </div>
 
         <div class="form-group">
             {{ form.description.label(class_="form-label") }}
             {{ form.description(class_="form-control", autocomplete="") }}
+            {% for error in form.description.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
         </div>
 
         <div class="form-group">
             {{ form.instructions.label(class_="form-label") }}
             {{ form.instructions(class_="form-control", autocomplete="") }}
+            {% for error in form.instructions.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
         </div>
 
         <h2 class="mt-4">Ingredients</h2>
@@ -30,18 +39,25 @@
 
                 <div class="col-md-3">
                     {{ subform.form.name.label(class_="form-label") }} 
-                    {{ subform.form.name(class_="form-control", autocomplete="", list="ingredient-dropdown-" ~ loop.index0, oninput="searchIngredient(this, " ~ loop.index0 ~ ")", onchange="selectIngredient(this, " ~ loop.index0 ~ ")") }}
+                    {{ subform.form.name(class_="form-control", autocomplete="", list="ingredient-dropdown-" ~ loop.indx0, oninput="searchIngredient(this, " ~ loop.index0 ~ ")", onchange="selectIngredient(this, " ~ loop.index0 ~ ")") }}
                     <datalist id="ingredient-dropdown-{{ loop.index0 }}"></datalist>
+                    {% for error in subform.form.name.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
                 <div class="col-md-2">
                     {{ subform.form.quantity.label(class_="form-label") }}
                     {{ subform.form.quantity(class_="form-control", autocomplete="") }}
-                    
+                    {% for error in subform.form.quantity.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
                 <div class="col-md-2">
                     {{ subform.form.unit.label(class_="form-label", for="ingredients-"~ loop.index0 ~"-unit") }}
                     {{ subform.form.unit(class_="form-control", id="ingredients-"~ loop.index0 ~"-unit", autocomplete="") }}
-                   
+                    {% for error in subform.form.unit.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
                 <div>{{ subform.form.spoonacular_id(id="ingredients-"~ loop.index0 ~"-spoonacular_id", type="hidden") }}</div>
                 <div class="col-md-2">
@@ -131,8 +147,8 @@ function selectIngredient(input, index) {
 let ingredientIndex = '{{ form.ingredients | length }}';
 
 async function refreshCsrfToken() {
-    const response = await fetch('/get_csrf_token');
-    const data = await response.json();
+    const response = await axios.get('/get_csrf_token');
+    const data = await response.data;
     CSRF_TOKEN = data.csrf_token;
 }
 

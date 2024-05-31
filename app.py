@@ -16,7 +16,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL', 'postgres
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "abc123"
-app.config['WTF_CSRF_TIME_LIMIT'] = None  # Disable CSRF expiration for testing, set an appropriate value for production
+app.config['WTF_CSRF_TIME_LIMIT'] = 120  
 connect_db(app)
 
 with app.app_context():
@@ -45,7 +45,7 @@ def boarding():
  
 
 def save_profile_image(form_image):
-    print("**************************", form_image)
+    
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_image.filename)
     picture_fn = random_hex + f_ext
@@ -64,9 +64,9 @@ def signup():
     """sign up a user: produce form & handle form submission."""
 
     form = SignUpForm()
-
+    
     if form.validate_on_submit():
-
+       
         username = form.username.data
         password = form.password.data
         email = form.email.data
@@ -76,18 +76,20 @@ def signup():
         profile_image = form.profile_image.data
 
         existing_user = User.query.filter_by(username=username).first()
+        
         if existing_user:
             flash('Username already exists please choose a new username!', 'danger')
             return redirect("/signup")
         
         existing_user_by_email = User.query.filter_by(email=email).first()
+        
         if existing_user_by_email:
             flash('Email already in use please choose a new one!', 'danger')
             return redirect("/signup")
         
         # Handle profile image upload
         if form.profile_image.data:
-            print("Profile Image Data Type:", type(form.profile_image.data))  # Debug print statement
+            print("Profile Image Data Type:", type(form.profile_image.data))  
             profile_image = save_profile_image(form.profile_image.data)
         else:
             profile_image = 'default_profile.png'
