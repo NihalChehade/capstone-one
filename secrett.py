@@ -1,0 +1,1 @@
+SPOONACULAR_API_KEY = '8d5a1ae54bae49a0b9f40bf8b6e1c2b2'

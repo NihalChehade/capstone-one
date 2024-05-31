@@ -8,7 +8,7 @@ import os
 import secrets
 from PIL import Image
 
-from secret import SPOONACULAR_API_KEY
+from secrett import SPOONACULAR_API_KEY
 app = Flask(__name__)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///cook_time"
