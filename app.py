@@ -1,6 +1,6 @@
-from flask_migrate import Migrate
+
 from flask import Flask, render_template, redirect, session, flash, request, current_app, jsonify
-from flask_debugtoolbar import DebugToolbarExtension
+
 from models import connect_db, db, User, Recipe, Ingredient, NutritionalValue, RecipeIngredient
 from forms import SignUpForm, LoginForm, RecipeForm, IngredientForm
 import requests
@@ -21,8 +21,7 @@ connect_db(app)
 
 with app.app_context():
  db.create_all()
-migrate = Migrate(app, db)
-toolbar = DebugToolbarExtension(app)
+
 API_BASE_URL = "https://api.spoonacular.com"
 key = SPOONACULAR_API_KEY
 
