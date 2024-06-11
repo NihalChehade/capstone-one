@@ -1,23 +1,23 @@
 import unittest
-from app import app, db, save_profile_image, calculate_nutritional_values
+from app import app, save_profile_image
 from forms import SignUpForm, LoginForm, RecipeForm, IngredientForm
-from models import Recipe, Ingredient, NutritionalValue, User, RecipeIngredient
+from models import db, Recipe, Ingredient, NutritionalValue, User, RecipeIngredient
 from io import BytesIO
 from PIL import Image
 import os
 from werkzeug.datastructures import FileStorage
+import db_operations as db_ops
 
 class TestAppUnit(unittest.TestCase):
 
     def setUp(self):
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///test_cook_time'
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('TEST_DATABASE_URL','postgresql:///test_cook_time')
         self.client = app.test_client()
         with app.app_context():
             db.create_all()
 
-    
     def tearDown(self):
         with app.app_context():
             db.session.remove()
@@ -37,7 +37,7 @@ class TestAppUnit(unittest.TestCase):
             
             self.assertTrue(os.path.exists(picture_path))
 
-            os.remove(picture_path) 
+            os.remove(picture_path)
 
     def test_calculate_nutritional_values(self):
         with app.app_context():
@@ -46,8 +46,11 @@ class TestAppUnit(unittest.TestCase):
             db.session.commit()
 
             ingredient = Ingredient(name='Test Ingredient', spoonacular_id='12345')
-            nutritional_value = NutritionalValue(nutrient_name='Calories', amount=100, unit='kcal', ingredient_id=ingredient.ingredient_id)
             db.session.add(ingredient)
+            db.session.commit()
+
+            nutritional_value = NutritionalValue(nutrient_name='Calories', amount=100, unit='kcal', ingredient_id=ingredient.ingredient_id)
+            db.session.add(nutritional_value)
             db.session.commit()
             
             ingredient.nutritional_values.append(nutritional_value)
@@ -58,7 +61,7 @@ class TestAppUnit(unittest.TestCase):
             recipe.recipes_ingredients_assoc.append(recipe_ingredient)
             db.session.commit()
             
-            result = calculate_nutritional_values(recipe)
+            result = db_ops.calculate_nutritional_values(recipe)
             
             self.assertIn('Calories', result)
             self.assertEqual(result['Calories'], 100)
@@ -67,7 +70,6 @@ class TestAppUnit(unittest.TestCase):
 
     def test_user_signup(self):
         with app.app_context():
-            # Create a valid image file in memory
             image = Image.new('RGB', (100, 100), color='red')
             image_file = BytesIO()
             image.save(image_file, format='JPEG')
@@ -86,15 +88,9 @@ class TestAppUnit(unittest.TestCase):
                 'profile_image': form_image
             }, content_type='multipart/form-data', follow_redirects=True)
 
-            # Debugging: Print response data
-            print("DEBUG: Response data (user signup):", response.data.decode('utf-8'))
-
             self.assertEqual(response.status_code, 200)
 
-            user = User.query.filter_by(username='testuser').first()
-
-            # Debugging: Print user object
-            print("DEBUG: User object (user signup):", user)
+            user = db_ops.get_user_by_username('testuser')
 
             self.assertIsNotNone(user)
             self.assertEqual(user.email, 'test@test.com')
@@ -102,22 +98,16 @@ class TestAppUnit(unittest.TestCase):
             self.assertEqual(user.last_name, 'Last')
             self.assertEqual(user.bio, 'Test Bio')
 
-
     def test_user_login(self):
         with app.app_context():
-            # First, create a user to log in
-            user = User.signup(username='testuser', pwd='password', email='test@test.com', fname='First', lname='Last', bio='Test Bio', image='default_profile.png')
+            user = db_ops.create_user('testuser', 'password', 'test@test.com', 'First', 'Last', 'Test Bio', 'default_profile.png')
             db.session.add(user)
             db.session.commit()
 
-            # Attempt to log in with the created user's credentials
             response = self.client.post('/login', data={
                 'username': 'testuser',
                 'password': 'password'
             }, follow_redirects=True)
-
-            # Debugging: Print response data
-            print("DEBUG: Response data (user login):", response.data.decode('utf-8'))
 
             self.assertEqual(response.status_code, 200)
             self.assertIn('Login successful', response.data.decode('utf-8'))
