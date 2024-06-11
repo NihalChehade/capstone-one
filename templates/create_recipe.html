@@ -59,7 +59,7 @@
                 </div>
                 <div>{{ subform.form.spoonacular_id(id="ingredients-"~ loop.index0 ~"-spoonacular_id", type="hidden") }}</div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-danger" onclick="removeIngredientForm('{{ loop.index0 }}')">Remove</button>
+                    <button type="button" class="btn btn-danger mt-3" onclick="removeIngredientForm('{{ loop.index0 }}')">Remove</button>
                 </div>
             </div>
             {% endfor %}
@@ -182,7 +182,7 @@ async function addIngredientForm() {
             </div>
             <input id="ingredients-${ingredientIndex}-spoonacular_id" name="ingredients-${ingredientIndex}-spoonacular_id" type="hidden">
             <div class="col-md-2">
-                <button type="button" class="btn btn-danger" onclick="removeIngredientForm(${ingredientIndex})">Remove</button>
+                <button type="button" class="btn btn-danger mt-3" onclick="removeIngredientForm(${ingredientIndex})">Remove</button>
             </div>
         </div>
     `;
